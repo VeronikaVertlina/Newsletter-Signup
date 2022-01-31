@@ -3,8 +3,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mailchimp = require("@mailchimp/mailchimp_marketing");
-const request = require("request");
-const https = require("https");
+// const request = require("request");
+// const https = require("https");
 
 const app = express();
 app.use(express.static("public"));
@@ -21,6 +21,9 @@ app.get("/", function(req, res){
 });
 
 app.post("/", function(req, res){
+  console.log(req.body.firstName);
+  console.log(req.body.lastName);
+  console.log(req.body.email);
 
   const listId = "44be01369a";
   const subscribingUser = {
@@ -33,22 +36,34 @@ app.post("/", function(req, res){
   //new variable called data going to set that as a new Javascript object
   //inside our data object, we have to provide all the key value pairs
 async function run() {
-  const response = await mailchimp.lists.addListMember(listId, {
-    email_address: subscribingUser.email,
-    status: "subscribed",
-    merge_fields: {
-      FNAME: subscribingUser.firstName,
-      LNAME: subscribingUser.lastName
-    }
-  });
+  try {
+    const response = await mailchimp.lists.addListMember(listId, {
+      email_address: subscribingUser.email,
+      status: "subscribed",
+      merge_fields: {
+        FNAME: subscribingUser.firstName,
+        LNAME: subscribingUser.lastName
+      }
+    });
 
-  console.log(
-    "Succeddfuly added contact as an audience member. The contact's id is " + response.id + " ."
-  );
+    console.log("Succeddfuly added contact as an audience member. The contact's id is " + response.id + " .");
+    res.sendFile(__dirname + "/success.html");
+  } catch (e) {
+    res.sendFile(__dirname + "/failure.html");
+  }
 }
-
 run();
 });
+
+
+app.post("/failure", function(req, res) {
+  res.redirect("/");
+});
+
+app.listen(3000, function(){
+  console.log("Server is running on port 3000.");
+});
+
 
   // // I'm going to pass in my data in JSON.stringify()
   // const jsonData = JSON.stringify(data);
@@ -72,13 +87,6 @@ run();
   // request.write(jsonData);
   // request.end();
 // });
-
-
-
-
-app.listen(3000, function(){
-  console.log("Server is running on port 3000.");
-});
 
 // API key
 //1a4b130f476c5cafe8a19d871bb670a1-us14
